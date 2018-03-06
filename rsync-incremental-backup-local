@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Configuration variables (change as you wish)
-src="/path/to/source"
-dst="/path/to/target"
+src="/Users/schleid/Downloads"
+dst="/Volumes/Backup"
 backupDepth=7
 timeout=1800
 pathBak0="data"
@@ -10,7 +10,7 @@ rotationLockFileName=".rsync-rotation-lock"
 pathBakN="backup"
 nameBakN="backup"
 exclusionFileName="exclude.txt"
-logName="rsync-incremental-backup_$(date -Id)_$(date +%H-%M-%S).log"
+logName="rsync-incremental-backup_$(date)_$(date +%H-%M-%S).log"
 ownFolderName=".rsync-incremental-backup"
 logFolderName="log"
 
@@ -46,14 +46,14 @@ do
 done
 
 # Prepare main rsync configuration
-rsyncFlags="-achv --info=progress2 --timeout=${timeout} --delete -W \
+rsyncFlags="-achv --progress --timeout=${timeout} --delete -W \
 --link-dest=${bak1}/ --log-file=${logFile} --exclude=${ownFolderPath} --chmod=+r \
 --exclude-from=${exclusionFilePath}"
 
 # Prepare log rsync configuration
 logRsyncFlags="-rhv --remove-source-files --exclude=${logName} --log-file=${logFile}"
 
-writeToLog "\n[$(date -Is)] You are going to backup"
+writeToLog "\n[$(date)] You are going to backup"
 writeToLog "\tfrom:  ${src}"
 writeToLog "\tto:    ${bak0}"
 writeToLog "\tflags: ${rsyncFlags}"
@@ -61,12 +61,12 @@ writeToLog "\tflags: ${rsyncFlags}"
 # Prepare paths at destination
 mkdir -p ${dst} ${logPath}
 
-writeToLog "\n[$(date -Is)] Old logs sending begins\n"
+writeToLog "\n[$(date)] Old logs sending begins\n"
 
 # Send old pending logs to destination
 rsync ${logRsyncFlags} ${tempLogPath}/ ${logPath}/
 
-writeToLog "\n[$(date -Is)] Old logs sending finished"
+writeToLog "\n[$(date)] Old logs sending finished"
 
 # Rotate backups if last rsync succeeded ..
 if ([ ! -e ${rotationLockFilePath} ])
@@ -74,7 +74,7 @@ then
 	# .. and there is previous data
 	if [ -d ${bak0} ]
 	then
-		writeToLog "\n[$(date -Is)] Backups rotation begins"
+		writeToLog "\n[$(date)] Backups rotation begins"
 
 		true $((i = i - 1))
 
@@ -94,18 +94,18 @@ then
 			fi
 		done
 
-		writeToLog "[$(date -Is)] Backups rotation finished\n"
+		writeToLog "[$(date)] Backups rotation finished\n"
 	else
-		writeToLog "\n[$(date -Is)] No previous data found, there is no backups to be rotated\n"
+		writeToLog "\n[$(date)] No previous data found, there is no backups to be rotated\n"
 	fi
 else
-	writeToLog "\n[$(date -Is)] Last backup failed, backups will not be rotated\n"
+	writeToLog "\n[$(date)] Last backup failed, backups will not be rotated\n"
 fi
 
 # Set rotation lock file to detect in next run when backup fails
 touch ${rotationLockFilePath}
 
-writeToLog "[$(date -Is)] Backup begins\n"
+writeToLog "[$(date)] Backup begins\n"
 
 # Do the backup
 rsync ${rsyncFlags} ${src}/ ${bak0}/
@@ -113,13 +113,13 @@ rsync ${rsyncFlags} ${src}/ ${bak0}/
 # Check rsync success
 if [ "$?" -eq "0" ]
 then
-	writeToLog "\n[$(date -Is)] Backup completed successfully\n"
+	writeToLog "\n[$(date)] Backup completed successfully\n"
 
 	# Clear unneeded partials and lock file
 	rm -rf ${rotationLockFilePath}
 	rsyncFail=0
 else
-	writeToLog "\n[$(date -Is)] Backup failed, try again later\n"
+	writeToLog "\n[$(date)] Backup failed, try again later\n"
 	rsyncFail=1
 fi
 
