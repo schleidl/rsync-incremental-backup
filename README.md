@@ -90,7 +90,7 @@ sudo cp rsync-incremental-backup-local /usr/local/bin
 ```sh
 sudo cp exclude.txt /.rsync-incremental-backup
 ```
-* Adjust the provided file com.example.rsync-backup.plist to your needs
+* Adjust the provided file com.example.rsync-backup.plist to your needs. The Launch Daemon is configured to write logs to /var/log/rsync-backup.log
 * Copy the Launch Daemon config file:
 ```sh
 sudo cp com.example.rsync-backup.plist /Library/LaunchDaemons
