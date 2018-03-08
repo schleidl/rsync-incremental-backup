@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Configuration variables (change as you wish)
-src="/path/to/source"
-dst="/path/to/target"
+src="/Users/schleid/Documents"
+dst="/Volumes/Backup"
 backupDepth=7
 timeout=1800
 pathBak0="data"
