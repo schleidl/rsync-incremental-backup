@@ -88,7 +88,7 @@ sudo cp rsync-incremental-backup-local /usr/local/bin
 * Adjust the provided sample exclude.txt file
 * Create the directory to where the script expects the exclude.txt file
 ```sh
-sudo mkdir /.rsync-incremental-backup
+sudo mkdir /.rsyn
 ```
 * Copy the provided sample exclude.txt to the directory the backup script is expecting it:
 ```sh
@@ -99,10 +99,9 @@ sudo cp exclude.txt /.rsync-incremental-backup
 ```sh
 sudo cp com.example.rsync-backup.plist /Library/LaunchDaemons
 ```
-- load and start LaunchDaemon:
+- Load and start LaunchDaemon:
 ```sh
 sudo launchctl load /Library/LaunchDaemons/com.example.rsync-backup.plist
-sudo launchctl start /Library/LaunchDaemons/com.example.rsync-backup.plist
 ```
 
 
