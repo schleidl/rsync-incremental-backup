@@ -1,11 +1,11 @@
-# rsync-incremental-backup
+# rsync-incremental-backup Adapted for OSX
 
-Configurable bash scripts to send incremental backups of your data to a local or remote target, using [rsync](https://download.samba.org/pub/rsync/rsync.html).
+Configurable bash scripts to send incremental backups of your data to a local or remote target, using [rsync](https://download.samba.org/pub/rsync/rsync.html). __Warning__: I have only adapted and tested the local backup script. 
 
 
 ## Description
 
-These scripts does (as many as you want) incremental backups of the desired directory to another local or remote directory.
+These scripts does (as many as you want) incremental backups of the desired directory to another local or remote directory on a Mac computer. 
 The first directory acts as a master (doesn't get modified), making copies of itself at the second directory (slave).
 Then, you can browse the slave directory and get any file included into any previous backup.
 
@@ -63,43 +63,44 @@ You have to set, at least, `src` and `dst` (and `remote` in remote version) valu
 
 If you want to exclude some files or directories from backup, add their paths (relative to backup root) to the text file referenced by `exclusionFileName`.
 
+This is some information on filter rules that may help:
+
+`/dir/` means exclude the root folder /dir
+`/dir/*` means get the root folder /dir but not the contents
+`dir/` means exclude any folder anywhere where the name contains dir/
+
+Examples excluded: `/dir/`, `/usr/share/directory/`, `/var/spool/dir/`
+`/var/spool/lpd/cf` means skip files that start with cf within any folder within `/var/spool/lpd`
+
 Once configured with your own variable values, you can simply run the script to begin the backup process.
 
 ### Automating backups
 
-Personally, I schedule it to run every week with [anacron](https://en.wikipedia.org/wiki/Anacron) in user mode. This way, I don't need to remember running it.
+Personally, I schedule it to run every day with a Launch Daemon. This way, I don't need to remember running it.
 
-To use anacron in user mode, you have to follow these steps:
+To use the provided Launch Daemon you have to follow these steps:
 
-* Create an `.anacron` folder in your home directory with subfolders `etc` and `spool`.
-
+* On the command line change to the directory where you have checket out this README.md file to
+* Copy the backup script to the the directory the Launch Daemon is expecting it: 
+```sh
+sudo cp rsync-incremental-backup-local /usr/local/bin
 ```
-mkdir ~/.anacron
-mkdir ~/.anacron/etc
-mkdir ~/.anacron/spool
+* Adjust the provided sample exclude.txt file
+* Copy the provided sample exclude.txt to the directory the backup script is expecting it:
+```sh
+sudo cp exclude.txt /.rsync-incremental-backup
 ```
-
-* Create an `anacrontab` file at `~/.anacron/etc` with this content (or equivalent, be sure to specify the right path to script):
-
+* Adjust the provided file com.example.rsync-backup.plist to your needs
+* Copy the Launch Daemon config file:
+```sh
+sudo cp com.example.rsync-backup.plist /Library/LaunchDaemons
 ```
-# /etc/anacrontab: configuration file for anacron
-
-# See anacron(8) and anacrontab(5) for details.
-
-SHELL=/bin/bash
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-START_HOURS_RANGE=8-22
-
-# period delay job-identifier command
-7 5 weekly_backup ~/bin/rsync-incremental-backup-remote
+- load and start LaunchDaemon:
+```sh
+sudo launchctl load /Library/LaunchDaemons/com.example.rsync-backup.plist
+sudo launchctl start /Library/LaunchDaemons/com.example.rsync-backup.plist
 ```
 
-* Make your anacron start at login. Add this content at the end of to your `~/.profile` file:
-
-```
-# User anacron
-/usr/sbin/anacron -s -t ${HOME}/.anacron/etc/anacrontab -S ${HOME}/.anacron/spool
-```
 
 ### Checking backup content
 
