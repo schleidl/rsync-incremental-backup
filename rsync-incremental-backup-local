@@ -23,107 +23,126 @@ rotationLockFilePath="${dst}/${rotationLockFileName}"
 logPath="${dst}/${pathBakN}/${logFolderName}"
 logFile="${tempLogPath}/${logName}"
 
-# Prepare log file
-mkdir -p ${tempLogPath}
-touch ${logFile}
+todo #Check whether the external Backup drive is mounted
+#if [[ df | awk '{print $9}' | grep -Ex "/Volumes/myvolume" != "" ]]; then
+  echo External backup drive is mounted
+  # Prepare log file
+  mkdir -p ${tempLogPath}
+  touch ${logFile}
 
-writeToLog() {
-	echo -e "$1" | tee -a ${logFile}
-}
+  writeToLog() {
+    echo -e "$1" | tee -a ${logFile}
+  }
 
-writeToLog "********************************"
-writeToLog "*                              *"
-writeToLog "*   rsync-incremental-backup   *"
-writeToLog "*                              *"
-writeToLog "********************************"
 
-# Prepare backup paths
-i=1
-while [ $i -le $backupDepth ]
-do
-	export bak$i="${dst}/${pathBakN}/${nameBakN}.$i"
-	true $((i = i + 1))
-done
+  writeToLog "********************************"
+  writeToLog "*                              *"
+  writeToLog "*   rsync-incremental-backup   *"
+  writeToLog "*                              *"
+  writeToLog "********************************"
 
-# Prepare main rsync configuration
-rsyncFlags="-achv --progress --timeout=${timeout} --delete -W \
---link-dest=${bak1}/ --log-file=${logFile} --exclude=${ownFolderPath} --chmod=+r \
---exclude-from=${exclusionFilePath}"
+  # Prepare backup paths
+  i=1
+  while [ $i -le $backupDepth ]
+  do
+    export bak$i="${dst}/${pathBakN}/${nameBakN}.$i"
+    true $((i = i + 1))
+  done
 
-# Prepare log rsync configuration
-logRsyncFlags="-rhv --remove-source-files --exclude=${logName} --log-file=${logFile}"
+  # Prepare main rsync configuration
+  rsyncFlags="-achv --progress --timeout=${timeout} --delete -W \
+  --link-dest=${bak1}/ --log-file=${logFile} --exclude=${ownFolderPath} --chmod=+r \
+  --exclude-from=${exclusionFilePath}"
 
-writeToLog "\n[$(date)] You are going to backup"
-writeToLog "\tfrom:  ${src}"
-writeToLog "\tto:    ${bak0}"
-writeToLog "\tflags: ${rsyncFlags}"
+  # Prepare log rsync configuration
+  logRsyncFlags="-rhv --remove-source-files --exclude=${logName} --log-file=${logFile}"
 
-# Prepare paths at destination
-mkdir -p ${dst} ${logPath}
+  writeToLog "\n[$(date)] You are going to backup"
+  writeToLog "\tfrom:  ${src}"
+  writeToLog "\tto:    ${bak0}"
+  writeToLog "\tflags: ${rsyncFlags}"
 
-writeToLog "\n[$(date)] Old logs sending begins\n"
+  # Prepare paths at destination
+  mkdir -p ${dst} ${logPath}
 
-# Send old pending logs to destination
-rsync ${logRsyncFlags} ${tempLogPath}/ ${logPath}/
+  writeToLog "\n[$(date)] Old logs sending begins\n"
 
-writeToLog "\n[$(date)] Old logs sending finished"
+  # Send old pending logs to destination
+  rsync ${logRsyncFlags} ${tempLogPath}/ ${logPath}/
 
-# Rotate backups if last rsync succeeded ..
-if ([ ! -e ${rotationLockFilePath} ])
-then
-	# .. and there is previous data
-	if [ -d ${bak0} ]
-	then
-		writeToLog "\n[$(date)] Backups rotation begins"
+  writeToLog "\n[$(date)] Old logs sending finished"
 
-		true $((i = i - 1))
+  # Rotate backups if last rsync succeeded ..
+  if ([ ! -e ${rotationLockFilePath} ])
+  then
+    # .. and there is previous data
+    if [ -d ${bak0} ]
+    then
+      writeToLog "\n[$(date)] Backups rotation begins"
 
-		# Remove the oldest backup if exists
-		bak="bak$i"
-		rm -rf ${!bak}
+      true $((i = i - 1))
 
-		# Rotate the previous backups
-		while [ $i -gt 0 ]
-		do
-			bakNewPath="bak$i"
-			true $((i = i - 1))
-			bakOldPath="bak$i"
-			if [ -d ${!bakOldPath} ]
-			then
-				mv ${!bakOldPath} ${!bakNewPath}
-			fi
-		done
+      # Remove the oldest backup if exists
+      bak="bak$i"
+      rm -rf ${!bak}
 
-		writeToLog "[$(date)] Backups rotation finished\n"
-	else
-		writeToLog "\n[$(date)] No previous data found, there is no backups to be rotated\n"
-	fi
-else
-	writeToLog "\n[$(date)] Last backup failed, backups will not be rotated\n"
-fi
+      # Rotate the previous backups
+      while [ $i -gt 0 ]
+      do
+        bakNewPath="bak$i"
+        true $((i = i - 1))
+        bakOldPath="bak$i"
+        if [ -d ${!bakOldPath} ]
+        then
+          mv ${!bakOldPath} ${!bakNewPath}
+        fi
+      done
 
-# Set rotation lock file to detect in next run when backup fails
-touch ${rotationLockFilePath}
+      writeToLog "[$(date)] Backups rotation finished\n"
+    else
+      writeToLog "\n[$(date)] No previous data found, there is no backups to be rotated\n"
+    fi
+  else
+    writeToLog "\n[$(date)] Last backup failed, backups will not be rotated\n"
+  fi
 
-writeToLog "[$(date)] Backup begins\n"
+  # Set rotation lock file to detect in next run when backup fails
+  touch ${rotationLockFilePath}
 
-# Do the backup
-rsync ${rsyncFlags} ${src}/ ${bak0}/
+  writeToLog "[$(date)] Backup begins\n"
 
-# Check rsync success
-if [ "$?" -eq "0" ]
-then
-	writeToLog "\n[$(date)] Backup completed successfully\n"
+  # Do the backup
+  rsync ${rsyncFlags} ${src}/ ${bak0}/
 
-	# Clear unneeded partials and lock file
-	rm -rf ${rotationLockFilePath}
-	rsyncFail=0
-else
-	writeToLog "\n[$(date)] Backup failed, try again later\n"
-	rsyncFail=1
-fi
+  # Check rsync success
+  if [ "$?" -eq "0" ]
+  then
+      writeToLog "\n[$(date)] Backup completed successfully\n"
+      #su $(stat -f "%Su" /dev/console) -c osascript -e 'display notification "Lorem ipsum dolor sit amet" with title "Title"'
 
-# Send the complete log file to destination
-mv ${logFile} ${logPath}
+      /usr/bin/osascript -e 'tell application "System Events"
+    activate
+    display notification "Rsync backup completed. " with title "Daily Backup"
+    end tell'
 
-exit ${rsyncFail}
+    # Clear unneeded partials and lock file
+    rm -rf ${rotationLockFilePath}
+    rsyncFail=0
+  else
+    writeToLog "\n[$(date)] Backup failed, try again later\n"
+    rsyncFail=1
+    /usr/bin/osascript -e 'tell application "System Events"
+    activate
+    display notification "Rsync backup failed. " with title "Daily Backup"
+    end tell'
+  fi
+
+  # Send the complete log file to destination
+  mv ${logFile} ${logPath}
+
+  exit ${rsyncFail}
+
+#else
+#    echo ""External backup drive not mounted""
+#fi
+
