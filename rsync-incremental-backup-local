@@ -23,8 +23,10 @@ rotationLockFilePath="${dst}/${rotationLockFileName}"
 logPath="${dst}/${pathBakN}/${logFolderName}"
 logFile="${tempLogPath}/${logName}"
 
-todo #Check whether the external Backup drive is mounted
-#if [[ df | awk '{print $9}' | grep -Ex "/Volumes/myvolume" != "" ]]; then
+#Check whether the external Backup drive is mounted
+if [ $(mount | grep -c /Volumes/Backup) == 1 ]
+then
+
   echo External backup drive is mounted
   # Prepare log file
   mkdir -p ${tempLogPath}
@@ -142,7 +144,7 @@ todo #Check whether the external Backup drive is mounted
 
   exit ${rsyncFail}
 
-#else
-#    echo ""External backup drive not mounted""
-#fi
+else
+    echo ""External backup drive not mounted""
+fi
 
