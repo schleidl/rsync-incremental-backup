@@ -24,7 +24,7 @@ logPath="${dst}/${pathBakN}/${logFolderName}"
 logFile="${tempLogPath}/${logName}"
 
 #Check whether the external Backup drive is mounted
-if [ $(mount | grep -c /Volumes/Backup) == 1 ]
+if [ $(mount | grep -c $dst) == 1 ]
 then
 
   echo External backup drive is mounted
@@ -127,8 +127,14 @@ then
     display notification "Rsync backup completed. " with title "Daily Backup"
     end tell'
 
-    # Clear unneeded partials and lock file
-    rm -rf ${rotationLockFilePath}
+      # Clear unneeded partials and lock file
+      if ([ ! -e ${rotationLockFilePath} ])
+      then
+          echo "Rotation lock file not present"
+      else
+          rm -rf ${rotationLockFilePath}
+      fi
+
     rsyncFail=0
   else
     writeToLog "\n[$(date)] Backup failed, try again later\n"

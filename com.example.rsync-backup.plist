@@ -11,7 +11,7 @@
   <array>
     <string>/bin/bash</string>
     <string>-c</string>
-    <string>sleep 3 && /usr/locbin/rsync-incremental-backup-local</string>
+    <string>sleep 3 && /usr/local/bin/rsync-incremental-backup-local</string>
   </array>
   <key>StandardOutPath</key>
   <string>/var/log/rsync-backup.log</string>
@@ -24,6 +24,8 @@
     <key>Minute</key>
     <integer>10</integer>
   </dict>
+  <key>StartOnMount</key>
+  <true/>
   <key>RunAtLoad</key>
   <true/>
 </dict>
