@@ -78,11 +78,11 @@ Once configured with your own variable values, you can simply run the script to 
 
 ### Automating backups
 
-Personally, I schedule it to run every day with a Launch Daemon. This way, I don't need to remember running it.
+The backup script is launched using an OS X Launch Daemon. Initially the Launch Daemon is configured to run the backup scrtipt once each day and once the backup drive is mounted. 
 
 To use the provided Launch Daemon you have to follow these steps:
 
-* On the command line change to the directory where you have checket out this README.md file to
+* On the command line change to the directory where you have checked out this README.md file to
 * Copy the backup script to the the directory the Launch Daemon is expecting it: 
 ```sh
 sudo cp rsync-incremental-backup-local /usr/local/bin
@@ -90,7 +90,7 @@ sudo cp rsync-incremental-backup-local /usr/local/bin
 * Adjust the provided sample exclude.txt file
 * Create the directory to where the script expects the exclude.txt file
 ```sh
-sudo mkdir /.rsyn
+sudo mkdir /.rsync-incremental-backup
 ```
 * Copy the provided sample exclude.txt to the directory the backup script is expecting it:
 ```sh
